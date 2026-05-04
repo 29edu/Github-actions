@@ -16,14 +16,14 @@ pipeline {
             }
         }
 
-        stages('Install Backend Dependencies') {
+        stage('Install Backend Dependencies') {
             steps {
                 echo 'Backend dependencies installing...'
                 sh 'npm install'
             }
         }
 
-        stages('Run tests') {
+        stage('Run tests') {
             steps {
                 echo 'Testing the backend...'
                 sh 'npm test'
