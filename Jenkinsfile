@@ -20,7 +20,12 @@ pipeline {
             steps {
                 dir('backend') {
                     echo 'Backend dependencies installing...'
-                    bat 'npm install'
+                    bat '''
+                    node -v
+                    npm -v
+                    npm cache clean --force
+                    npm install --force
+                    '''
                 }
             }
         }
@@ -29,7 +34,9 @@ pipeline {
             steps {
                 dir('backend') {
                     echo 'Testing the backend...'
-                    bat 'npm test'
+                    bat '''
+                    npm test
+                    '''
                 }
             }
         }
@@ -37,23 +44,29 @@ pipeline {
         stage('Build Backend Docker Image') {
             steps {
                 echo 'Building Backend Docker image...'
-                bat 'docker build -t %DOCKER_HUB_USERNAME%/todo-backend:latest ./backend'
+                bat '''
+                docker build -t %DOCKER_HUB_USERNAME%/todo-backend:latest ./backend
+                '''
             }
         }
 
         stage('Build Frontend Docker Image') {
             steps {
                 echo 'Building Frontend Docker image...'
-                bat 'docker build -t %DOCKER_HUB_USERNAME%/todo-frontend:latest ./frontend'
+                bat '''
+                docker build -t %DOCKER_HUB_USERNAME%/todo-frontend:latest ./frontend
+                '''
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
                 echo 'Pushing to Docker Hub...'
-                bat 'echo %DOCKER_HUB_PASSWORD% | docker login -u %DOCKER_HUB_USERNAME% --password-stdin'
-                bat 'docker push %DOCKER_HUB_USERNAME%/todo-backend:latest'
-                bat 'docker push %DOCKER_HUB_USERNAME%/todo-frontend:latest'
+                bat '''
+                echo %DOCKER_HUB_PASSWORD% | docker login -u %DOCKER_HUB_USERNAME% --password-stdin
+                docker push %DOCKER_HUB_USERNAME%/todo-backend:latest
+                docker push %DOCKER_HUB_USERNAME%/todo-frontend:latest
+                '''
             }
         }
 
