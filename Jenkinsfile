@@ -76,8 +76,13 @@ pipeline {
                     )
                 ]) {
                     bat """
-                    icacls %SSH_KEY_FILE% /inheritance:r /grant:r "%USERNAME%:R"
-                    ssh -i %SSH_KEY_FILE% -o StrictHostKeyChecking=no ubuntu@%EC2_HOST% "docker pull %DOCKER_HUB_USERNAME%/todo-backend:latest && docker pull %DOCKER_HUB_USERNAME%/todo-frontend:latest && docker stop todo-backend todo-frontend || true && docker rm todo-backend todo-frontend || true && docker run -d --name todo-backend -p 5000:5000 -e MONGO_URI=%MONGO_URI% %DOCKER_HUB_USERNAME%/todo-backend:latest && docker run -d --name todo-frontend -p 3000:80 %DOCKER_HUB_USERNAME%/todo-frontend:latest"
+                        copy %SSH_KEY_FILE% %TEMP%\\ec2-key.pem
+                        icacls %TEMP%\\ec2-key.pem /inheritance:r
+                        icacls %TEMP%\\ec2-key.pem /remove "BUILTIN\\Users"
+                        icacls %TEMP%\\ec2-key.pem /remove "Everyone"
+                        icacls %TEMP%\\ec2-key.pem /grant:r "%USERNAME%:(R)"
+                        ssh -i %TEMP%\\ec2-key.pem -o StrictHostKeyChecking=no ubuntu@%EC2_HOST% "docker pull %DOCKER_HUB_USERNAME%/todo-backend:latest && docker pull %DOCKER_HUB_USERNAME%/todo-frontend:latest && docker stop todo-backend todo-frontend || true && docker rm todo-backend todo-frontend || true && docker run -d --name todo-backend -p 5000:5000 -e MONGO_URI=%MONGO_URI% %DOCKER_HUB_USERNAME%/todo-backend:latest && docker run -d --name todo-frontend -p 3000:80 %DOCKER_HUB_USERNAME%/todo-frontend:latest"
+                        del %TEMP%\\ec2-key.pem
                     """
                 }
             }
